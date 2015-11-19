@@ -39,7 +39,7 @@ public class SettingsActivity extends AppCompatActivity {
         timePicker = (TimePicker) findViewById(R.id.timer);
         timePicker.setIs24HourView(true);
 
-        sharedPreferences = getPreferences(MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
 
         String preferences = sharedPreferences.getString(uuid,"{}");
         try {

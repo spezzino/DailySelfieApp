@@ -43,6 +43,7 @@ public class ListSelfiesActivity extends AppCompatActivity implements LoaderMana
                 c.moveToPosition(position);
                 Intent i = new Intent(ListSelfiesActivity.this, ViewSelfieActivity.class);
                 i.putExtra(ViewSelfieActivity.SELFIE_PATH, c.getString(c.getColumnIndex(Selfie.SELFIE_PATH)));
+                i.putExtra(MainActivity.EXTRA_UUID, c.getString(c.getColumnIndex(Selfie.USER_ID)));
                 startActivity(i);
             }
         });
@@ -50,7 +51,7 @@ public class ListSelfiesActivity extends AppCompatActivity implements LoaderMana
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String[] projection = {Selfie._ID, Selfie.SELFIE_TIME, Selfie.SELFIE_PATH};
+        String[] projection = {Selfie._ID, Selfie.SELFIE_TIME, Selfie.SELFIE_PATH, Selfie.USER_ID};
         String selection = Selfie.USER_ID + "=?";
         String[] selectionArgs = {getIntent().getStringExtra(MainActivity.EXTRA_UUID)};
 

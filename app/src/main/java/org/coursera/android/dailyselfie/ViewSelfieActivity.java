@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +20,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -54,7 +52,7 @@ public class ViewSelfieActivity extends AppCompatActivity implements RestApi {
 
     private ProgressDialog pd;
 
-    public static final String BASE_URL = "http://192.168.0.5:8080";
+    public static final String BASE_URL = "http://192.168.67.236:8080";
 
     public static final String SELFIE_PATH = "selfiePath";
 
@@ -65,6 +63,7 @@ public class ViewSelfieActivity extends AppCompatActivity implements RestApi {
     }
 
     private String filePath;
+    private String uuid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,17 +88,18 @@ public class ViewSelfieActivity extends AppCompatActivity implements RestApi {
         if (getIntent().getStringExtra(SELFIE_PATH) == null) {
             Uri contentUri = getIntent().getParcelableExtra(TakeSelfieActivity2.CONTENT_URI);
 
-            String[] projection = {Selfie.SELFIE_PATH, Selfie._ID};
+            String[] projection = {Selfie.SELFIE_PATH, Selfie._ID, Selfie.USER_ID};
             Cursor cursor = getContentResolver().query(contentUri, projection, null, null,
                     null);
 
             if (cursor != null) {
                 cursor.moveToFirst();
-                filePath = cursor.getString(cursor
-                        .getColumnIndexOrThrow(Selfie.SELFIE_PATH));
+                filePath = cursor.getString(cursor.getColumnIndexOrThrow(Selfie.SELFIE_PATH));
+                uuid = cursor.getString(cursor.getColumnIndexOrThrow(Selfie.USER_ID));
             }
         } else {
             filePath = getIntent().getStringExtra(SELFIE_PATH);
+            uuid = getIntent().getStringExtra(MainActivity.EXTRA_UUID);
         }
         loadPreview(new File(filePath));
 
@@ -144,6 +144,7 @@ public class ViewSelfieActivity extends AppCompatActivity implements RestApi {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(ViewSelfieActivity.this, ListSelfiesActivity.class);
+                i.putExtra(MainActivity.EXTRA_UUID, uuid);
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 finish();
@@ -178,9 +179,9 @@ public class ViewSelfieActivity extends AppCompatActivity implements RestApi {
 
     private void handleShakeEvent() {
         Log.d("DailySelfie.TAG", "shake!!");
-        Snackbar.make(rootView, "Random effect!", Snackbar.LENGTH_LONG).show();
+        Toast.makeText(this, "Shake!!", Toast.LENGTH_LONG).show();
 
-        switch ((int) (Math.random() * 100 % 3)) {
+        switch ((int) ((Math.random() * 100) % 3)) {
             case 0:
                 applyEffect(Effects.GRAYSCALE);
                 break;
@@ -202,7 +203,6 @@ public class ViewSelfieActivity extends AppCompatActivity implements RestApi {
             @Override
             public void success(Response result, Response response) {
                 pd.dismiss();
-                android.os.Debug.waitForDebugger();
                 try {
                     InputStream is = response.getBody().in();
 
@@ -223,7 +223,6 @@ public class ViewSelfieActivity extends AppCompatActivity implements RestApi {
 
             @Override
             public void failure(RetrofitError error) {
-                android.os.Debug.waitForDebugger();
                 pd.dismiss();
                 Toast.makeText(ViewSelfieActivity.this, "Error while processing, try again.", Toast.LENGTH_LONG).show();
             }

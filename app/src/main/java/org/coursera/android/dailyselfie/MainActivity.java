@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         ActivityCompat.OnRequestPermissionsResultCallback {
     private static final String TAG = "DailySelfie.TAG";
+    public static final String PREFS = "DailySelfie.Prefs";
 
     public static final String EXTRA_UUID = "uuid";
 
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements
     private View mRootView;
 
     private boolean isSignedIn = false;
+
+    private SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,7 +134,12 @@ public class MainActivity extends AppCompatActivity implements
                 .addScope(new Scope(Scopes.EMAIL))
                 .build();
 
-        Utils.scheduleAlarms(this, System.currentTimeMillis());
+        sp = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+
+        if(!sp.contains("hour")) {
+            Utils.scheduleAlarms(this, System.currentTimeMillis());
+        }
+
     }
 
     @Override
@@ -169,7 +178,8 @@ public class MainActivity extends AppCompatActivity implements
             if (currentPerson != null) {
                 // Show signed-in user's name
                 String name = currentPerson.getDisplayName();
-                Log.d(TAG, "uuid: " + Plus.PeopleApi.getCurrentPerson(mGoogleApiClient).getId());
+                String uuid = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient).getId();
+                Log.d(TAG, "uuid: " + uuid);
                 Snackbar.make(mRootView, "Signed in as " + name, Snackbar.LENGTH_INDEFINITE)
                         .setAction("Logout", new View.OnClickListener() {
                             @Override
@@ -186,6 +196,9 @@ public class MainActivity extends AppCompatActivity implements
                         })
                         .setActionTextColor(Color.YELLOW)
                         .show();
+
+                sp.edit().putString(MainActivity.EXTRA_UUID, uuid).apply();
+
 
                 // Show users' email address (which requires GET_ACCOUNTS permission)
                 if (checkAccountsPermission()) {

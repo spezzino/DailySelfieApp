@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -890,9 +891,15 @@ public class TakeSelfieActivity2 extends AppCompatActivity implements ActivityCo
         try {
             copy(mFile, selfieFile);
 
+            String uuid = getIntent().getStringExtra(MainActivity.EXTRA_UUID);
+            if(uuid == null){
+                SharedPreferences sp = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+                uuid = sp.getString(MainActivity.EXTRA_UUID, null);
+            }
+
             Selfie selfie = new Selfie();
             selfie.setSelfiePath(selfieFile.getAbsolutePath());
-            selfie.setUserId(getIntent().getStringExtra(MainActivity.EXTRA_UUID));
+            selfie.setUserId(uuid);
             selfie.setSelfieTime(System.currentTimeMillis());
 
             ContentValues values = selfie.toContentValues();
